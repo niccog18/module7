@@ -1,0 +1,82 @@
+Learning Objectives
+
+By the end of this lesson, you will be able to:
+
+    Explain what an embedding is and why representing text as numbers matters for AI
+    Describe how embeddings capture semantic meaning (words with similar meanings are close together)
+    Explain the difference between keyword search and semantic search
+    Identify where embeddings fit in the AI application stack you've been building
+
+
+
+Imagine you're organizing a massive library. You could alphabetize every book: "Algorithms" next to "Algebra," "Zebras" next to "Zen." That's easy to maintain, but it means a book about cooking Italian pasta sits nowhere near a book about making ramen, even though they're about the same thing.
+
+
+Now imagine a different system: you arrange books so that similar topics are physically close together. Cookbooks cluster in one area, programming books in another, and within the programming section, Python books are near Ruby books because they're both dynamic scripting languages. In this system, you don't need to know the exact title, you can just walk to the "area" that matches what you're interested in.
+
+
+That's what embeddings do for AI. They take text (words, sentences, entire documents) and convert it into a list of numbers - a vector - that represents the meaning of that text. Texts with similar meanings get similar vectors, placing them close together in a mathematical space. This is the foundation of how modern AI systems find, compare, and retrieve information.
+From Words to Numbers
+
+Computers don't understand language. They understand numbers. So every AI system that works with text needs a way to convert words into numbers. The question is how.
+
+The naive approach: Assign each word a unique number. "cat" = 1, "dog" = 2, "pizza" = 3. Simple, but useless. The number 1 (cat) is closer to 2 (dog) than to 3 (pizza) purely by accident of ordering. The numbers carry no meaning.
+
+The one-hot approach: Create a vector with one slot per word in the vocabulary. "cat" = [1, 0, 0], "dog" = [0, 1, 0], "pizza" = [0, 0, 1]. Better, but every word is equally distant from every other word. "Cat" and "dog" are just as far apart as "cat" and "pizza," which doesn't reflect reality.
+
+The embedding approach: Train a model to learn that "cat" and "dog" are more similar than "cat" and "pizza," and encode that understanding in the numbers themselves. The result might look like: "cat" = [0.82, -0.34, 0.15, ...], "dog" = [0.79, -0.31, 0.18, ...], "pizza" = [-0.12, 0.67, 0.44, ...]. Notice how "cat" and "dog" have similar values, while "pizza" is very different.
+
+
+Real embedding vectors have hundreds or thousands of dimensions (not just 3), and each dimension captures some aspect of meaning - sentiment, formality, topic, concreteness, and many more that don't have simple human labels.
+
+
+11.png
+
+
+The Famous Example: King - Man + Woman = Queen
+
+The most celebrated demonstration of embeddings is this arithmetic:
+
+Take the embedding for "king." Subtract the embedding for "man." Add the embedding for "woman." The resulting vector is closest to… "queen."
+
+
+This works because the embedding model learned that the relationship between "king" and "man" (royalty minus maleness) is the same as the relationship between "queen" and "woman." The model encoded this understanding purely from reading text, nobody told it about gender or royalty.
+
+
+This isn't a party trick. It demonstrates that embeddings capture relationships between concepts, not just what individual words mean. That's what makes them so powerful for search and retrieval.
+From Words to Sentences (and Documents)
+
+Word embeddings are useful, but in practice you often need to embed entire sentences or paragraphs. Sentence embeddings work the same way: a model takes a full sentence and produces a single vector that represents the overall meaning of that sentence.
+
+"How do I create a REST API in Python?" and "Building a Python web API from scratch" would have very similar embeddings, even though they share almost no words. The model understands that both sentences are about the same topic.
+
+
+This is the key difference between keyword search and semantic search:
+
+Keyword search: Match exact words. Searching for "build API Python" only finds documents containing those specific words. Misses documents that say "create a web service using Python", even though the meaning is identical.
+
+Semantic search: Match meaning. Convert the query to an embedding, compare it to document embeddings, return the closest matches by meaning. Finds relevant results regardless of specific wording.
+
+
+Semantic search is what you'll build in this module. It's what powers ChatGPT's knowledge retrieval, Google's search improvements, and every modern AI assistant that can find relevant information from a knowledge base.
+How Embedding Models Are Trained
+
+You don't need to train your own embedding model, you'll use pre-trained models like all-MiniLM-L6-v2 from the sentence-transformers library. But understanding the training concept helps you use them effectively.
+
+
+Embedding models are trained on massive amounts of text. During training, the model learns to produce similar vectors for text that appears in similar contexts. If "the cat sat on the mat" and "the dog sat on the rug" appear in similar documents, the model learns that "cat" and "dog" are similar, and "mat" and "rug" are similar.
+
+
+The models don't understand language the way you do, they've learned statistical patterns about which words and phrases tend to co-occur and in what contexts. But those patterns turn out to be remarkably good at capturing meaning.
+Where Embeddings Fit in Your Stack
+
+Here's how embeddings connect to everything you've built so far:
+ai-94a0db9c-f7cd-4240-9c3f-84d80b0cac53.png
+
+    Module 5 (FastAPI): Your backend can expose an endpoint that accepts a query and returns search results
+    Module 6 (Streamlit): Your frontend provides the search interface
+    Module 7 (this module): Embeddings and vector storage power the search logic
+    Module 8 (RAG): Retrieved documents feed into a language model for answer generation
+
+
+Embeddings are the bridge between "I have documents" and "I can find the right documents for any question." Everything else in this module builds on this concept.
