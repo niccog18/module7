@@ -1,0 +1,108 @@
+Learning Objectives
+
+By the end of this lesson, you will be able to:
+
+    Explain why documents need to be split into chunks before embedding
+    Describe what a context window is and why it limits input size
+    Compare fixed-size chunking, sentence-based chunking, and semantic chunking
+    Identify the tradeoff between chunk size and search precision
+
+Imagine you’re trying to find one specific fact in a 300-page textbook. Would you rather search page by page, chapter by chapter, or paragraph by paragraph?
+
+    Chapter by chapter: You’ll find the right chapter, but you’ll still need to read the whole thing to find the specific fact. Too much content dilutes the search.
+    Paragraph by paragraph: You’ll find exactly the right paragraph - but if the answer spans two paragraphs, you’ll only get half of it. Too little context breaks the meaning.
+    Page by page: A reasonable middle ground. Each page has enough context to be useful, and the search is precise enough to be helpful.
+
+This is the chunking problem in AI systems. Before you can embed and search documents, you need to break them into pieces. How you break them matters enormously.
+Why Not Embed Entire Documents?
+
+Two reasons:
+
+Context windows. Embedding models have a maximum input length. The all-MiniLM-L6-v2 model you’ve been using has a context window of 256 tokens (roughly 200 words). Any text beyond that is silently truncated - the model just ignores it. A 10-page document would lose 95% of its content.
+
+Precision. Even if the model could handle the entire document, the resulting embedding would be an average of the entire document’s meaning. If a 50-page manual covers 20 topics, its embedding is a blurry average of all 20. When someone searches for one specific topic, the document’s embedding won’t be particularly close to the query - it’s spread too thin across too many concepts.
+
+Chunking solves both problems: each chunk fits within the context window, and each chunk represents a focused piece of meaning.
+What Is a Context Window?
+
+A context window is the maximum number of tokens a model can process at once. A token is roughly 3/4 of a word ("embedding" = 1 token, "un-embed-ding" might be 3 tokens).
+
+Different models have different context windows:
+
+    all-MiniLM-L6-v2: 256 tokens (~200 words)
+    all-mpnet-base-v2: 384 tokens (~300 words)
+    OpenAI text-embedding-3-small: 8,191 tokens (~6,000 words)
+
+You need to choose chunks that fit within your embedding model’s context window. If a chunk exceeds the window, it gets truncated, and you lose information.
+Chunking Strategies
+1. Fixed-Size Chunking
+
+Split text every N characters (or N words/tokens), with optional overlap:
+def fixed_size_chunks(text, chunk_size=500, overlap=50):
+    chunks = []
+    start = 0
+    while start < len(text):
+        end = start + chunk_size
+        chunks.append(text[start:end])
+        start = end - overlap  # Overlap ensures we don't cut mid-idea
+    return chunks
+
+Pros: Simple, predictable chunk sizes, easy to implement.
+
+Cons: Cuts mid-sentence, mid-paragraph, or mid-thought. A sentence about "Python FastAPI" might be split across two chunks.
+2. Sentence-Based Chunking
+
+Split on sentence boundaries, grouping sentences until reaching a target size:
+import re
+
+def sentence_chunks(text, max_chunk_size=500):
+    sentences = re.split(r'(?<=[.!?])\\s+', text)  # Split on sentence endings
+    chunks, current_chunk = [], ""
+
+    for sentence in sentences:
+        if len(current_chunk) + len(sentence) > max_chunk_size and current_chunk:
+            chunks.append(current_chunk.strip())
+            current_chunk = sentence
+        else:
+            current_chunk += " " + sentence
+
+    if current_chunk.strip():
+        chunks.append(current_chunk.strip())
+    return chunks
+
+Pros: Never cuts mid-sentence, preserves grammatical meaning.
+
+Cons: Chunk sizes vary. Might still cut between related sentences.
+3. Semantic/Paragraph Chunking
+
+Split on natural document boundaries - paragraphs, sections, or headings:
+
+Pros: Each chunk represents a complete thought or topic. Best for structured documents (documentation, articles, textbooks).
+
+Cons: Paragraph sizes vary wildly. A 3-sentence paragraph and a 30-sentence paragraph produce very different chunk sizes.
+The Chunk Size Tradeoff
+Gemini_Generated_Image_y3geq7y3geq7y3ge.png
+
+
+Small chunks (50–100 words): Very precise search - you find the exact sentence. But each chunk lacks context. "Use st.session_state" is less useful without the surrounding explanation of why and how.
+
+Large chunks (500–1000 words): Rich context - each chunk tells a complete story. But the embedding becomes a blend of multiple ideas, reducing search precision.
+
+The sweet spot is typically 200–500 words (or 150–400 tokens) for most applications. But there’s no universal "best" size - it depends on your documents and use case. In the module project, you’ll experiment with different sizes and compare the results.
+Overlap: Why Chunks Should Slightly Overlap
+
+If you cut a document at position 500, the idea that spans positions 490–510 gets split across two chunks. Neither chunk has the full thought.
+
+Overlap solves this by having each chunk share some text with the next one. A 50-character overlap means positions 450–500 appear in both chunk N and chunk N+1. This ensures that ideas at chunk boundaries aren’t lost.
+
+Typical overlap is 10–20% of chunk size (50–100 characters for a 500-character chunk).
+Choosing a Strategy
+
+Here’s a practical guide:
+
+    Structured documentation (like this course’s lessons): Paragraph/section chunking. The document already has natural breaks.
+    Conversational text (chat logs, support tickets): Sentence-based chunking.
+    Unstructured text (scraped web pages, PDFs): Fixed-size with overlap.
+    When in doubt: Start with fixed-size (300–500 characters, 50–100 overlap) and experiment from there.
+
+In the next two lessons, you’ll store chunks in ChromaDB and build a search tool. The chunking strategy you choose directly affects the quality of your search results.
