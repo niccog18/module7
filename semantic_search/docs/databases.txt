@@ -1,0 +1,9 @@
+SQLAlchemy is a Python library that provides tools for working with relational databases. It allows developers to interact with databases using Python objects and queries instead of writing every SQL statement manually.
+
+A database model represents the structure of a table. In a FastAPI application, SQLAlchemy models can define fields such as an ID, title, description, and user ID. These models can then be used to create, read, update, and delete records.
+
+SQLite is a lightweight relational database that is useful for development and small applications. It stores the database in a local file, making it easy to set up without running a separate database server.
+
+Database sessions are used to communicate with the database. An application can create a session, perform queries or changes, commit those changes, and then close the session when the operation is finished.
+
+Relationships allow tables to be connected. For example, a Task table can contain a user_id foreign key that connects each task to a specific User. This allows an application to retrieve only the tasks belonging to the authenticated user.

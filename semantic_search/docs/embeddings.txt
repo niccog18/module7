@@ -1,0 +1,9 @@
+Embeddings are numerical representations of text that capture the meaning of words, sentences, or documents. An embedding model converts text into a vector containing many numerical values.
+
+Texts with similar meanings tend to have embeddings that are close together in vector space. This makes embeddings useful for semantic search because a search system can compare the vector for a user's query with vectors representing stored documents.
+
+Sentence Transformers provides pretrained models that can generate embeddings from text. The all-MiniLM-L6-v2 model is a commonly used model for creating sentence and paragraph embeddings.
+
+Cosine similarity is one method for comparing embeddings. A higher cosine similarity generally means that two pieces of text are more semantically similar. This allows a search system to return relevant documents even when the query does not contain the exact same words as the document.
+
+Vector databases such as ChromaDB can store embeddings along with the original documents and metadata. When a user submits a query, the query can be converted into an embedding and compared with the stored vectors to find the most relevant documents.

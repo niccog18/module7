@@ -1,0 +1,9 @@
+ChromaDB is a vector database designed for applications that work with embeddings. It can store documents, embeddings, and metadata together so that applications can perform semantic searches.
+
+A ChromaDB collection is used to organize related documents and their embeddings. Documents can be added to a collection with unique IDs and optional metadata such as the source filename.
+
+When performing a query, ChromaDB converts the query into an embedding and compares it with stored embeddings. The database returns the documents that are closest to the query according to the configured distance metric.
+
+Metadata can be used to filter search results. For example, an application can store the filename of each document as metadata and then use a where filter to search only within a specific source file.
+
+ChromaDB can also persist data to disk. Persistent storage allows an application to close and restart without losing the documents and embeddings that have already been added to the collection.

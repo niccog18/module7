@@ -1,0 +1,105 @@
+Learning Objectives
+
+By the end of this lesson, you will be able to:
+
+    Design a complete semantic search pipeline from document ingestion to result display
+    Load and chunk real documents (text files, markdown) for embedding
+    Build an end-to-end search tool combining file loading, chunking, ChromaDB storage, and querying
+    Add a Streamlit interface for interactive search
+
+
+
+You’ve learned the pieces: embeddings turn text into meaning-vectors (Lesson 1), cosine similarity measures how close they are (Lesson 2), chunking breaks documents into searchable pieces (Lesson 3), and ChromaDB stores and retrieves them efficiently (Lesson 4).
+
+Now you assemble the whole machine.
+
+Think of building a search tool like setting up a library. You’ve learned about book labels (embeddings), the card catalog system (ChromaDB), and how to organize books by topic (chunking). This lesson is about building the actual library: receiving books, cataloging them, shelving them, and helping visitors find what they need.
+The Complete Pipeline
+
+Every semantic search system follows the same architecture:
+
+Ingestion phase (run once):
+
+    Load raw documents (text files, PDFs, web pages, databases)
+    Chunk them into searchable pieces with your chosen strategy
+    Embed and store the chunks in ChromaDB with metadata
+
+Query phase (run per search):
+
+    Receive a user’s question
+    Embed the question using the same model
+    Query ChromaDB for the most similar chunks
+    Display the results with scores and source information
+
+
+Gemini_Generated_Image_x0ht4hx0ht4hx0ht.png
+
+
+The critical requirement: the ingestion phase and query phase must use the same embedding model. If you embed documents with all-MiniLM-L6-v2 but embed queries with a different model, the vectors live in different spaces and similarity scores are meaningless.
+Loading Documents
+
+For this module, you’ll work with text files and markdown. The loading step reads files and prepares them for chunking:
+import os
+
+def load_documents(directory):
+    """Load all .txt and .md files from a directory."""
+    documents = []
+    for filename in os.listdir(directory):
+        if filename.endswith(('.txt', '.md')):
+            filepath = os.path.join(directory, filename)
+            with open(filepath, 'r', encoding='utf-8') as f:
+                content = f.read()
+            documents.append({
+                "content": content,
+                "source": filename,  # Track which file each chunk came from
+            })
+    return documents
+
+Tracking the source file is important - when a search returns a result, users want to know where the information came from.
+The Ingestion Pipeline
+
+Combining loading, chunking, and storage:
+def ingest_documents(directory, collection):
+    """Load, chunk, and store documents in ChromaDB."""
+    documents = load_documents(directory)
+    all_chunks = []
+    all_metadatas = []
+    all_ids = []
+
+    for doc in documents:
+        chunks = paragraph_chunks(doc["content"])  # Your chunking function
+        for i, chunk in enumerate(chunks):
+            all_chunks.append(chunk)
+            all_metadatas.append({"source": doc["source"], "chunk_index": str(i)})
+            all_ids.append(f"{doc['source']}_{i}")
+
+    collection.upsert(
+        documents=all_chunks,
+        metadatas=all_metadatas,
+        ids=all_ids
+    )
+    return len(all_chunks)
+
+The metadata includes the source filename and chunk index. This lets you filter by source and reconstruct where each result came from.
+The Query Interface
+
+With Streamlit, the search interface is simple:
+import streamlit as st
+
+query = st.text_input("Search your documents")
+if query:
+    results = collection.query(query_texts=[query], n_results=5)
+    for i in range(len(results['documents'][0])):
+        doc = results['documents'][0][i]
+        source = results['metadatas'][0][i]['source']
+        distance = results['distances'][0][i]
+        st.write(f"**{source}** (distance: {distance:.4f})")
+        st.write(doc)
+        st.divider()
+
+In the Guided Example, you’ll build the complete version with proper layout, source highlighting, and result count.
+Why This Matters
+
+The semantic search tool you build in this lesson and the module project is the core component of every RAG system. In Module 8, you’ll add a language model that takes the search results and generates a natural language answer. But the retrieval - finding the right documents - is what makes or breaks the system. A RAG chatbot with bad retrieval gives wrong answers no matter how good the language model is.
+
+Get the search right, and everything downstream improves.
