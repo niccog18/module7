@@ -1,0 +1,82 @@
+Learning Objectives
+
+By the end of this lesson, you will be able to:
+
+    Explain why evaluating search quality matters and why "it looks right" isn’t enough
+    Define precision and recall in the context of search results
+    Apply a simple evaluation methodology to measure your search tool’s quality
+    Identify common failure modes in semantic search and strategies to fix them
+
+Imagine you build a semantic search engine and demo it to your team. You type a query, and the results look relevant. Everyone nods. You ship it.
+
+Two weeks later, a user searches for "JWT token expiration" and the top result is about CSS animations. Another user searches for "database relationships" and gets a paragraph about interpersonal communication skills. The results looked good during the demo because you tested with queries you expected. You never tested with queries that would expose the system’s weaknesses.
+
+This is why evaluation matters. You need a systematic way to measure search quality - not just eyeball it.
+The Two Dimensions: Precision and Recall
+
+Search quality has two independent dimensions:
+
+Precision: Of the results you returned, how many were actually relevant? If you return 5 results and 4 are relevant, your precision is 4/5 = 80%.
+
+Recall: Of all the relevant documents that exist in your collection, how many did you find? If there are 10 relevant documents and you returned 4 of them, your recall is 4/10 = 40%.
+
+
+Gemini_Generated_Image_ok1qusok1qusok1q.png
+
+
+
+Think of it with a real example. You search for "authentication" in your course notes:
+
+    Your system returns 5 results
+    3 of them are actually about authentication (precision = 3/5 = 60%)
+    Your knowledge base has 8 documents about authentication total (recall = 3/8 = 37.5%)
+
+High precision, low recall: The results you get are relevant, but you’re missing a lot of relevant documents. Your threshold is probably too strict.
+
+Low precision, high recall: You find most relevant documents, but also return a lot of noise. Your threshold is probably too loose.
+
+The ideal is high precision AND high recall, but there’s always a tradeoff. Loosening the threshold improves recall but hurts precision, and vice versa.
+Building an Evaluation Set
+
+To measure your search quality, you need:
+
+    A set of test queries (10–20 for a small project)
+    Expected results for each query (which documents should be returned)
+    A way to compare actual results against expected results
+
+This is called a gold standard or evaluation set. You create it manually by going through your document collection and determining which documents are relevant for each test query.
+eval_set = [
+    {
+        "query": "How does JWT authentication work?",
+        "relevant_doc_ids": ["jwt_auth_doc", "protected_routes_doc", "login_flow_doc"]
+    },
+    {
+        "query": "What is the box model in CSS?",
+        "relevant_doc_ids": ["css_box_model_doc", "css_layout_doc"]
+    },
+    # ... more test queries
+]
+
+Yes, creating this by hand takes time. But it’s the only way to know if your search system actually works. Without it, you’re guessing.
+Common Failure Modes
+
+Wrong chunk size: Chunks too large return vaguely related but unfocused results. Chunks too small return fragments without enough context to be useful.
+
+Vocabulary mismatch: The query uses technical terms the documents don’t contain (or vice versa). Semantic search handles this better than keyword search, but it’s not perfect.
+
+Off-topic high scores: Two documents about completely different topics happen to have similar embeddings because they share structural patterns (both are lists, both are FAQs, etc.).
+
+Context window truncation: Your chunks exceed the embedding model’s context window, so the end of each chunk is silently dropped.
+
+Stale embeddings: Documents were updated but their embeddings weren’t re-generated.
+
+Knowing these failure modes helps you diagnose problems when evaluation scores are low.
+When "Good Enough" Depends on the Application
+
+There’s no universal target for precision and recall. It depends on what’s at stake:
+
+    Medical or legal chatbot: You need very high precision (wrong answers are dangerous) and very high recall (missing relevant information is also dangerous). This is hard.
+    Internal documentation search: Moderate precision is fine (users can scroll past irrelevant results). High recall matters more (don’t miss relevant docs).
+    Fun recommendation system: Lower precision is acceptable. Missing some relevant items is fine.
+
+For the module project, aim for: precision above 60% and recall above 50% on your evaluation set. If you’re below that, experiment with different chunk sizes, overlap amounts, or similarity thresholds.
