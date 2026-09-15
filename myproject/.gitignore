@@ -1,0 +1,49 @@
+# Python virtual environment
+venv/
+.venv/
+env/
+
+# Python cache files
+**pycache**/
+*.py[cod]
+*$py.class
+
+# Testing and coverage
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+
+# ChromaDB persistent data
+chroma_data/
+
+# Sentence Transformers / Hugging Face cache
+.cache/
+huggingface_cache/
+
+# Streamlit
+.streamlit/
+
+# Environment variables and secrets
+.env
+.env.*
+!.env.example
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# IDE/editor files
+.vscode/
+.idea/
+
+# Operating system files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
